@@ -2,13 +2,8 @@
 
 #include "MultiplayerTemplateGameInstance.h"
 #include "Engine/Engine.h"
-#include "UObject/ConstructorHelpers.h"
-#include "Blueprint/UserWidget.h"
 #include "OnlineSubsystem.h"
 #include "OnlineSessionSettings.h"
-
-const static FName SESSION_NAME = NAME_GameSession;	//NAME_GameSession is an Unreal enum for session name which will work across any version of Unreal
-const static FName SERVER_NAME_SETTINGS_KEY = TEXT("ServerName");
 
 UMultiplayerTemplateGameInstance::UMultiplayerTemplateGameInstance(const FObjectInitializer& ObjectInitializer)
 {
@@ -48,8 +43,9 @@ void UMultiplayerTemplateGameInstance::Init()
 void UMultiplayerTemplateGameInstance::Host(FString ServerName)
 {
 	DesiredServerName = ServerName;
-	if (SessionInterface.IsValid()) {
-		auto ExistingSession = SessionInterface->GetNamedSession(SESSION_NAME);
+	if (SessionInterface.IsValid())
+	{
+		FNamedOnlineSession* ExistingSession = SessionInterface->GetNamedSession(SESSION_NAME);
 		if (ExistingSession != nullptr)
 		{
 			SessionInterface->DestroySession(SESSION_NAME);
@@ -87,6 +83,19 @@ void UMultiplayerTemplateGameInstance::StartSession()
 	if (SessionInterface.IsValid())
 	{
 		SessionInterface->StartSession(SESSION_NAME);
+	}
+}
+
+void UMultiplayerTemplateGameInstance::OpenSteamOverlay()
+{
+	SteamFriends()->ActivateGameOverlay("Friends");
+}
+
+void UMultiplayerTemplateGameInstance::OpenInviteFriendsDialog()
+{
+	if (CurrentLobbyId.IsValid())
+	{
+		SteamFriends()->ActivateGameOverlayInviteDialog(CurrentLobbyId);
 	}
 }
 
@@ -188,4 +197,27 @@ void UMultiplayerTemplateGameInstance::OnNetworkFailure(UWorld* World, UNetDrive
 	if (!ensure(PlayerController != nullptr)) return;	//Protection from player controller pointer being null causing crash
 
 	PlayerController->ClientTravel("/Game/TopDown/Maps/TopDownMap", ETravelType::TRAVEL_Absolute);
+}
+
+void UMultiplayerTemplateGameInstance::OnGameOverlayActivated(GameOverlayActivated_t* pCallback)
+{
+	if (pCallback->m_bActive)
+		GEngine->AddOnScreenDebugMessage(INDEX_NONE, 10, FColor::Red, TEXT("Overlay Active"));
+	else
+		GEngine->AddOnScreenDebugMessage(INDEX_NONE, 10, FColor::Blue, TEXT("Overlay Inactive"));
+}
+
+void UMultiplayerTemplateGameInstance::OnLobbyEntered(LobbyEnter_t* pCallback)
+{
+	uint64 LobbyId = pCallback->m_ulSteamIDLobby;
+
+	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 10, FColor::Yellow, FString::FromInt(LobbyId));
+	CurrentLobbyId.SetFromUint64(LobbyId);	//This probably needs to be unset when leaving a lobby
+}
+
+void UMultiplayerTemplateGameInstance::OnLobbyDataUpdated(LobbyDataUpdate_t* pCallback)
+{
+	uint64 LobbyId = pCallback->m_ulSteamIDLobby;
+
+	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 10, FColor::Orange, FString::FromInt(LobbyId));
 }
