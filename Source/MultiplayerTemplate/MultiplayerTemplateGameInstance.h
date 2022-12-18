@@ -3,10 +3,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Engine/GameInstance.h"
 #include "OnlineSubsystem.h"
 #include "Interfaces/OnlineSessionInterface.h"
-#include "steam/steam_api.h"
 
 #include "MultiplayerTemplateGameInstance.generated.h"
 
@@ -19,8 +17,6 @@ class MULTIPLAYERTEMPLATE_API UMultiplayerTemplateGameInstance : public UGameIns
 	GENERATED_BODY()
 	
 public:
-	CSteamID CurrentLobbyId;
-
 	UMultiplayerTemplateGameInstance(const FObjectInitializer& ObjectInitializer);
 	virtual void Init();
 
@@ -37,11 +33,14 @@ public:
 	void OpenInviteFriendsDialog();
 
 private:
+	const FName SESSION_NAME = NAME_GameSession;	//NAME_GameSession is an Unreal enum for session name which will work across any version of Unreal
+	const FName SERVER_NAME_SETTINGS_KEY = TEXT("ServerName");
+	IOnlineSubsystem* OnlineSubsystem;
 	IOnlineSessionPtr SessionInterface;
+	IOnlineFriendsPtr FriendsInterface;
+	IOnlineExternalUIPtr ExternalUIInterface;
 	FString DesiredServerName;
 	TSharedPtr<class FOnlineSessionSearch> SessionSearch;
-	FName SESSION_NAME = NAME_GameSession;	//NAME_GameSession is an Unreal enum for session name which will work across any version of Unreal
-	FName SERVER_NAME_SETTINGS_KEY = TEXT("ServerName");
 
 	void CreateSession();
 
@@ -51,8 +50,4 @@ private:
 	void OnFindSessionsComplete(bool Success);
 	void OnJoinSessionComplete(FName SessionName, EOnJoinSessionCompleteResult::Type Result);
 	void OnNetworkFailure(UWorld* World, UNetDriver* NetDriver, ENetworkFailure::Type FailureType, const FString& ErrorString);
-
-	STEAM_CALLBACK(UMultiplayerTemplateGameInstance, OnGameOverlayActivated, GameOverlayActivated_t);
-	STEAM_CALLBACK(UMultiplayerTemplateGameInstance, OnLobbyEntered, LobbyEnter_t);
-	STEAM_CALLBACK(UMultiplayerTemplateGameInstance, OnLobbyDataUpdated, LobbyDataUpdate_t);
 };
