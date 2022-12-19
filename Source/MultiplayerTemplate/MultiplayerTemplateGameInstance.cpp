@@ -25,6 +25,7 @@ void UMultiplayerTemplateGameInstance::Init()
 	SessionInterface->OnDestroySessionCompleteDelegates.AddUObject(this, &UMultiplayerTemplateGameInstance::OnDestroySessionComplete);
 	SessionInterface->OnFindSessionsCompleteDelegates.AddUObject(this, &UMultiplayerTemplateGameInstance::OnFindSessionsComplete);
 	SessionInterface->OnJoinSessionCompleteDelegates.AddUObject(this, &UMultiplayerTemplateGameInstance::OnJoinSessionComplete);
+	SessionInterface->OnSessionUserInviteAcceptedDelegates.AddUObject(this, &UMultiplayerTemplateGameInstance::OnSessionUserInviteAccepted);
 
 	//Handler for network failure (i.e. the host leaves the server)
 	GEngine->OnNetworkFailure().AddUObject(this, &UMultiplayerTemplateGameInstance::OnNetworkFailure);
@@ -50,6 +51,14 @@ void UMultiplayerTemplateGameInstance::Join(uint32 Index)
 	if (!SessionSearch.IsValid()) return;
 
 	SessionInterface->JoinSession(0, SESSION_NAME, SessionSearch->SearchResults[Index]);
+}
+
+void UMultiplayerTemplateGameInstance::JoinFriend(const FOnlineSessionSearchResult& InviteResult)
+{
+	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 10, FColor::Green, TEXT("Joining friend"));
+	if (!InviteResult.IsValid()) return;
+
+	SessionInterface->JoinSession(0, SESSION_NAME, InviteResult);
 }
 
 void UMultiplayerTemplateGameInstance::RefreshServerList()
@@ -158,6 +167,11 @@ void UMultiplayerTemplateGameInstance::OnJoinSessionComplete(FName SessionName, 
 	//Client travel (client's player controller moves to a server being hosted)
 	APlayerController* PlayerController = GetFirstLocalPlayerController();
 	PlayerController->ClientTravel(Address, ETravelType::TRAVEL_Absolute);
+}
+
+void UMultiplayerTemplateGameInstance::OnSessionUserInviteAccepted(bool Success, int32 ControllerId, FUniqueNetIdPtr UserId, const FOnlineSessionSearchResult& InviteResult)
+{
+	JoinFriend(InviteResult);
 }
 
 void UMultiplayerTemplateGameInstance::OnNetworkFailure(UWorld* World, UNetDriver* NetDriver, ENetworkFailure::Type FailureType, const FString& ErrorString)

@@ -24,6 +24,7 @@ public:
 	void Host(FString ServerName);
 	UFUNCTION(Exec)
 	void Join(uint32 Index);
+	void JoinFriend(const FOnlineSessionSearchResult& InviteResult);
 	UFUNCTION(Exec)
 	void RefreshServerList();
 	void StartSession();
@@ -49,5 +50,6 @@ private:
 	void OnDestroySessionComplete(FName SessionName, bool Success);
 	void OnFindSessionsComplete(bool Success);
 	void OnJoinSessionComplete(FName SessionName, EOnJoinSessionCompleteResult::Type Result);
+	void OnSessionUserInviteAccepted(bool Success, int32 ControllerId, FUniqueNetIdPtr UserId, const FOnlineSessionSearchResult& InviteResult);
 	void OnNetworkFailure(UWorld* World, UNetDriver* NetDriver, ENetworkFailure::Type FailureType, const FString& ErrorString);
 };
