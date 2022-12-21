@@ -5,6 +5,8 @@
 #include "OnlineSessionSettings.h"
 #include "Interfaces/OnlineFriendsInterface.h"
 #include "Interfaces/OnlineExternalUIInterface.h"
+#include "MainLuaState.h"
+#include "LuaBlueprintFunctionLibrary.h"
 
 UMultiplayerTemplateGameInstance::UMultiplayerTemplateGameInstance(const FObjectInitializer& ObjectInitializer)
 {
@@ -178,4 +180,15 @@ void UMultiplayerTemplateGameInstance::OnNetworkFailure(UWorld* World, UNetDrive
 {
 	APlayerController* PlayerController = GetFirstLocalPlayerController();
 	PlayerController->ClientTravel("/Game/TopDown/Maps/TopDownMap", ETravelType::TRAVEL_Absolute);
+}
+
+void UMultiplayerTemplateGameInstance::PrintDebugScript()
+{
+	FString ScriptPath = "Scripts/DebugScript.lua";	//Relative path to script from Content folder
+	UWorld* World = GetWorld();
+	TSubclassOf<ULuaState> LuaState = UMainLuaState::StaticClass();	//This class must inherit from LuaState, but cannot be LuaState
+	FLuaValue ReturnValue = ULuaBlueprintFunctionLibrary::LuaRunFile(World, LuaState, ScriptPath, false);
+	FString ReturnedString = ReturnValue.ToString();
+
+	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 10, FColor::Blue, ReturnedString);
 }

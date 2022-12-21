@@ -9,7 +9,8 @@
 			"Type": "Runtime",
 			"LoadingPhase": "Default",
 			"AdditionalDependencies": [
-				"Engine"
+				"Engine",
+				"LuaMachine"
 			]
 		}
 	],
@@ -24,6 +25,18 @@
 		{
 			"Name": "OnlineSubsystemSteam",
 			"Enabled": true
+		},
+		{
+			"Name": "Lua",
+			"Enabled": false
+		},
+		{
+			"Name": "Lua54",
+			"Enabled": false
+		},
+		{
+			"Name": "UnLua",
+			"Enabled": false
 		}
 	]
 }
